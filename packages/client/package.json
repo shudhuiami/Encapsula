@@ -1,5 +1,5 @@
 {
-  "name": "@encapsula/client",
+  "name": "encapsula-client",
   "version": "0.1.0",
   "description": "Frontend decoder client for Encapsula API response encryption.",
   "type": "module",
