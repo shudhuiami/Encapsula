@@ -203,3 +203,12 @@ Notes:
 ## Main Goal
 
 Build Encapsula as a professional, clean, reusable, well-tested package that other developers can confidently install, understand, and maintain.
+
+## Cursor Cloud specific instructions
+
+- **PHP 8.3** and **Composer 2.x** are available system-wide (installed via `ondrej/php` PPA).
+- Key PHP extensions pre-installed: mbstring, xml, curl, zip, bcmath, tokenizer, dom, pdo_sqlite, openssl.
+- Once a `composer.json` exists, run `composer install` to install dependencies. The update script handles this automatically.
+- Run tests with `vendor/bin/phpunit` (after dependencies are installed).
+- No database or external services are required; SQLite is available for testing.
+- PHPUnit 12.x is compatible with PHP 8.3. If the project pins PHPUnit 11.x or 10.x, that will also work.
