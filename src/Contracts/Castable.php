@@ -16,7 +16,7 @@ interface Castable
      * Cast the given value to the target type.
      *
      * @param  mixed  $value  The raw input value to cast.
-     * @return mixed  The cast value.
+     * @return mixed The cast value.
      */
     public function cast(mixed $value): mixed;
 }

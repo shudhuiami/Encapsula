@@ -13,9 +13,10 @@ use Traversable;
  * Typed collection wrapper for DataObject instances.
  *
  * @template T of DataObject
+ *
  * @implements IteratorAggregate<int, T>
  */
-class DataCollection implements IteratorAggregate, Countable
+class DataCollection implements Countable, IteratorAggregate
 {
     /**
      * @param  array<int, T>  $items
@@ -41,6 +42,7 @@ class DataCollection implements IteratorAggregate, Countable
      * Apply a callback to each item and return a new collection.
      *
      * @template U
+     *
      * @param  callable(T, int): U  $callback
      * @return array<int, U>
      */
@@ -53,7 +55,6 @@ class DataCollection implements IteratorAggregate, Countable
      * Filter items using a callback and return a new DataCollection.
      *
      * @param  callable(T, int): bool  $callback
-     * @return static
      */
     public function filter(callable $callback): static
     {
@@ -61,7 +62,8 @@ class DataCollection implements IteratorAggregate, Countable
             array_filter($this->items, $callback, ARRAY_FILTER_USE_BOTH)
         );
 
-        return new static($filtered);
+        /** @var static */
+        return new static($filtered); // @phpstan-ignore new.static
     }
 
     /**

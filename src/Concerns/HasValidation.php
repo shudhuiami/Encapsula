@@ -19,7 +19,7 @@ trait HasValidation
      * Validate the given data against the DataObject's rules.
      *
      * @param  array<string, mixed>  $data
-     * @return array<string, mixed>  The validated data.
+     * @return array<string, mixed> The validated data.
      *
      * @throws ValidationException
      */
