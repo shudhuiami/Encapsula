@@ -10,10 +10,10 @@ Encapsula encrypts JSON API responses at the middleware level using AES-256-GCM 
 
 Encapsula has two package layers in the same repository:
 
-| Package | Purpose | Path |
-|---|---|---|
-| `zobayer/encapsula` | Laravel backend middleware for protected API responses | repository root |
-| `encapsula-client` | JavaScript/TypeScript frontend decoder for Vue, React, Next.js, Nuxt, Vite, Axios, Fetch, and Node clients | `packages/client` |
+| Package | Registry Link | Purpose | Path |
+|---|---|---|---|
+| `zobayer/encapsula` | https://packagist.org/packages/zobayer/encapsula | Laravel backend middleware for protected API responses | repository root |
+| `encapsula-client` | https://www.npmjs.com/package/encapsula-client | JavaScript/TypeScript frontend decoder for Vue, React, Next.js, Nuxt, Vite, Axios, Fetch, and Node clients | `packages/client` |
 
 For simple projects without npm, standalone copy-paste helpers are kept in `frontend/`.
 
@@ -211,53 +211,6 @@ The middleware:
 - **Frontend keys are visible** in built frontend apps when they are shipped to the browser.
 - **Key management** is the application's responsibility. Rotate keys carefully and consider a key rotation strategy for production.
 - **This is obfuscation, not access control.** Use proper authorization (policies, gates, scopes) to restrict which data is returned by your API.
-
-## Publishing
-
-Publishing requires maintainer accounts and credentials. Do not commit API tokens, `.env` files, or auth files.
-
-### Publish PHP Package to Packagist
-
-1. Confirm package metadata in `composer.json`.
-2. Commit and push all changes to GitHub.
-3. Create a Git tag:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-4. Go to Packagist and submit the repository URL:
-
-```txt
-https://github.com/shudhuiami/Encapsula
-```
-
-5. After submission, verify Composer installation:
-
-```bash
-composer require zobayer/encapsula
-```
-
-### Publish Frontend Package to npm
-
-From the client package directory:
-
-```bash
-cd packages/client
-npm install
-npm run typecheck
-npm test
-npm run build
-npm login
-npm publish
-```
-
-After publishing, verify installation in a fresh project:
-
-```bash
-npm install encapsula-client
-```
 
 ## Development
 
