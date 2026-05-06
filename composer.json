@@ -1,0 +1,46 @@
+{
+    "name": "zobayer/encapsula",
+    "description": "A clean, type-safe data encapsulation (DTO) package for Laravel.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "dto",
+        "data-transfer-object",
+        "data-object",
+        "encapsulation",
+        "typed",
+        "casting",
+        "validation"
+    ],
+    "authors": [
+        {
+            "name": "Ahmed Zobayer",
+            "email": "shudhuiami@users.noreply.github.com"
+        }
+    ],
+    "homepage": "https://github.com/shudhuiami/Encapsula",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zobayer\\Encapsula\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zobayer\\Encapsula\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
