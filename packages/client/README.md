@@ -1,4 +1,4 @@
-# @encapsula/client
+# encapsula-client
 
 Frontend decoder client for [Encapsula](https://github.com/shudhuiami/Encapsula) API response encryption.
 
@@ -7,13 +7,13 @@ Automatically detects and decrypts AES-256-GCM encrypted API responses returned 
 ## Installation
 
 ```bash
-npm install @encapsula/client
+npm install encapsula-client
 ```
 
 ## Quick Start
 
 ```ts
-import { decodeEncapsulaResponse } from '@encapsula/client';
+import { decodeEncapsulaResponse } from 'encapsula-client';
 
 const response = await fetch('/api/users');
 const body = await response.json();
@@ -48,7 +48,7 @@ Attach a response interceptor to an Axios instance. Returns the interceptor ID.
 
 ```ts
 import axios from 'axios';
-import { attachEncapsulaAxiosInterceptor } from '@encapsula/client';
+import { attachEncapsulaAxiosInterceptor } from 'encapsula-client';
 
 const api = axios.create({ baseURL: '/api' });
 attachEncapsulaAxiosInterceptor(api, {
@@ -63,7 +63,7 @@ const { data } = await api.get('/users'); // Decrypted automatically
 Create a fetch wrapper that decrypts responses automatically.
 
 ```ts
-import { createEncapsulaFetch } from '@encapsula/client';
+import { createEncapsulaFetch } from 'encapsula-client';
 
 const apiFetch = createEncapsulaFetch({
   key: import.meta.env.VITE_ENCAPSULA_KEY,
@@ -122,6 +122,17 @@ try {
 ```
 
 Unencrypted responses pass through unchanged — no error is thrown.
+
+## Publishing
+
+```bash
+npm install
+npm run typecheck
+npm test
+npm run build
+npm login
+npm publish
+```
 
 ## Security Notes
 

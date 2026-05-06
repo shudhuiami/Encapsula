@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-npm install @encapsula/client axios
+npm install encapsula-client axios
 ```
 
 ## Environment Variable
@@ -19,7 +19,7 @@ VITE_ENCAPSULA_KEY=your-base64-encoded-32-byte-key
 ```ts
 // composables/useApi.ts
 import axios from 'axios';
-import { attachEncapsulaAxiosInterceptor } from '@encapsula/client';
+import { attachEncapsulaAxiosInterceptor } from 'encapsula-client';
 
 const api = axios.create({
   baseURL: '/api',
@@ -61,7 +61,7 @@ onMounted(async () => {
 ## Without Axios
 
 ```ts
-import { createEncapsulaFetch } from '@encapsula/client';
+import { createEncapsulaFetch } from 'encapsula-client';
 
 const apiFetch = createEncapsulaFetch({
   key: import.meta.env.VITE_ENCAPSULA_KEY,

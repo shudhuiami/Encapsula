@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-npm install @encapsula/client
+npm install encapsula-client
 ```
 
 ## Environment Variable
@@ -15,7 +15,7 @@ export ENCAPSULA_KEY=your-base64-encoded-32-byte-key
 ## Basic Usage
 
 ```ts
-import { decodeEncapsulaResponse } from '@encapsula/client';
+import { decodeEncapsulaResponse } from 'encapsula-client';
 
 const response = await fetch('https://your-api.com/api/users');
 const body = await response.json();
@@ -31,7 +31,7 @@ console.log(users);
 
 ```ts
 import axios from 'axios';
-import { attachEncapsulaAxiosInterceptor } from '@encapsula/client';
+import { attachEncapsulaAxiosInterceptor } from 'encapsula-client';
 
 const api = axios.create({
   baseURL: 'https://your-api.com/api',
@@ -42,13 +42,13 @@ attachEncapsulaAxiosInterceptor(api, {
 });
 
 const { data: users } = await api.get('/users');
-console.log(users); // Already decrypted
+console.log(users);
 ```
 
 ## With Fetch Wrapper
 
 ```ts
-import { createEncapsulaFetch } from '@encapsula/client';
+import { createEncapsulaFetch } from 'encapsula-client';
 
 const apiFetch = createEncapsulaFetch({
   key: process.env.ENCAPSULA_KEY!,
