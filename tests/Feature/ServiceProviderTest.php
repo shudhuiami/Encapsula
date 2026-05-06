@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Zobayer\Encapsula\Tests\Feature;
 
+use Illuminate\Routing\Router;
+use Zobayer\Encapsula\Contracts\Encryptor;
 use Zobayer\Encapsula\EncapsulaServiceProvider;
+use Zobayer\Encapsula\Services\ResponseEncryptor;
 use Zobayer\Encapsula\Tests\TestCase;
 
 class ServiceProviderTest extends TestCase
@@ -22,24 +25,34 @@ class ServiceProviderTest extends TestCase
         $config = $this->app['config']->get('encapsula');
 
         $this->assertIsArray($config);
-        $this->assertArrayHasKey('strict', $config);
-        $this->assertArrayHasKey('date_format', $config);
-        $this->assertArrayHasKey('validate_by_default', $config);
+        $this->assertArrayHasKey('enabled', $config);
+        $this->assertArrayHasKey('key', $config);
+        $this->assertArrayHasKey('algorithm', $config);
+        $this->assertArrayHasKey('exclude', $config);
+        $this->assertArrayHasKey('envelope', $config);
     }
 
-    public function test_config_default_values(): void
+    public function test_encryptor_is_bound(): void
     {
-        $this->assertFalse($this->app['config']->get('encapsula.strict'));
-        $this->assertSame('Y-m-d H:i:s', $this->app['config']->get('encapsula.date_format'));
-        $this->assertTrue($this->app['config']->get('encapsula.validate_by_default'));
+        $encryptor = $this->app->make(Encryptor::class);
+
+        $this->assertInstanceOf(ResponseEncryptor::class, $encryptor);
     }
 
-    public function test_config_values_can_be_overridden(): void
+    public function test_encryptor_is_singleton(): void
     {
-        $this->app['config']->set('encapsula.strict', true);
-        $this->app['config']->set('encapsula.date_format', 'Y-m-d');
+        $first = $this->app->make(Encryptor::class);
+        $second = $this->app->make(Encryptor::class);
 
-        $this->assertTrue($this->app['config']->get('encapsula.strict'));
-        $this->assertSame('Y-m-d', $this->app['config']->get('encapsula.date_format'));
+        $this->assertSame($first, $second);
+    }
+
+    public function test_middleware_alias_registered(): void
+    {
+        /** @var Router $router */
+        $router = $this->app->make('router');
+        $middleware = $router->getMiddleware();
+
+        $this->assertArrayHasKey('encapsula.encrypt', $middleware);
     }
 }

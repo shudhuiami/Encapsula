@@ -1,17 +1,17 @@
 {
     "name": "zobayer/encapsula",
-    "description": "A clean, type-safe data encapsulation (DTO) package for Laravel.",
+    "description": "Laravel API response encryption middleware with frontend decoding support.",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "laravel",
-        "dto",
-        "data-transfer-object",
-        "data-object",
-        "encapsulation",
-        "typed",
-        "casting",
-        "validation"
+        "encryption",
+        "api",
+        "middleware",
+        "response-encryption",
+        "aes-gcm",
+        "security",
+        "frontend-decoding"
     ],
     "authors": [
         {

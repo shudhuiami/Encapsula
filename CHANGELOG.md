@@ -5,7 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-05-06
+## [Unreleased]
+
+### Changed
+
+- **Package direction changed** from DTO/data-object to API response encryption middleware with frontend decoding.
+- Updated `composer.json` description and keywords.
+- Updated `README.md` with encryption-focused documentation.
+- Updated `docs/architecture.md` with new scope and architecture.
+- Replaced `config/encapsula.php` with encryption-focused settings.
+- Updated `EncapsulaServiceProvider` to bind encryption contracts and register middleware.
+
+### Added
+
+- `Encryptor` contract (`src/Contracts/Encryptor.php`).
+- `ResponseEncryptor` service using AES-256-GCM (`src/Services/ResponseEncryptor.php`).
+- `EncryptApiResponse` middleware (`src/Http/Middleware/EncryptApiResponse.php`).
+- `EncryptionException` for encryption/decryption failures (`src/Exceptions/EncryptionException.php`).
+- Frontend TypeScript helpers: `decrypt.ts`, `axios-interceptor.ts`, `fetch-client.ts`.
+- Unit tests for `ResponseEncryptor`.
+- Feature tests for `EncryptApiResponse` middleware.
+
+### Deprecated
+
+- DTO/DataObject classes (`DataObject`, `DataCollection`, Concerns traits) are deprecated and will be removed in the next release.
+
+## [0.1.0] - 2026-05-06 [YANKED]
 
 ### Added
 
