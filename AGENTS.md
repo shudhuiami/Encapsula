@@ -21,6 +21,32 @@ Do not behave like a quick code generator. Work like a professional maintainer w
 9. Do not break existing behavior without explaining why.
 10. After changes, review the code as if preparing it for a pull request.
 
+## Strict Scope and Deletion Policy
+
+This repository has multiple intentional integration paths. Do not simplify the structure by deleting one path when adding or improving another.
+
+Before making changes, list:
+
+1. Files to add.
+2. Files to modify.
+3. Files to delete.
+
+The delete list must be empty unless the issue explicitly includes an `Allowed deletions` section naming the exact files or directories that may be removed.
+
+Rules:
+
+- Do not delete, move, rename, or replace existing files/directories unless explicitly allowed by the issue.
+- Adding a new package does not permit removing old helpers, examples, docs, or previous implementation files.
+- If duplication exists, keep both and document the difference.
+- If a file looks obsolete, pause and ask before deleting it.
+- Never remove `frontend/` while working on `packages/client/` unless the issue explicitly allows that deletion.
+- Never remove `packages/client/` while working on `frontend/` unless the issue explicitly allows that deletion.
+
+Frontend integration paths are intentional:
+
+1. `frontend/` = standalone/manual/copy-paste helpers.
+2. `packages/client/` = installable npm package for Vue, React, Next.js, Nuxt, Vite, and Node-based projects.
+
 ## Package Development Standards
 
 This repository is intended to become a clean Composer/Laravel package. All implementation should respect reusable package design.
@@ -174,7 +200,7 @@ Pull request summaries should include:
 
 The agent must not:
 
-- Delete files without checking their purpose.
+- Delete files without checking their purpose and without explicit issue permission.
 - Rewrite the whole package when a small change is enough.
 - Add large dependencies without justification.
 - Change package namespace or public API casually.
