@@ -6,6 +6,7 @@ namespace Zobayer\Encapsula\Concerns;
 
 use BackedEnum;
 use Carbon\Carbon;
+use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -41,7 +42,7 @@ trait HasCasting
 
         if (! empty($unknownKeys)) {
             if (config('encapsula.strict', false)) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Unknown keys [' . implode(', ', $unknownKeys) . '] provided to ' . static::class . '.'
                 );
             }
@@ -116,8 +117,33 @@ trait HasCasting
             'int' => (int) $value,
             'float' => (float) $value,
             'string' => (string) $value,
-            'bool' => (bool) $value,
+            'bool' => static::castBool($value),
         };
+    }
+
+    protected static function castBool(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (bool) $value;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+                return true;
+            }
+
+            if (in_array($normalized, ['0', 'false', 'no', 'off', ''], true)) {
+                return false;
+            }
+        }
+
+        throw new InvalidArgumentException('Unable to cast value to bool for ' . static::class . '.');
     }
 
     /**
