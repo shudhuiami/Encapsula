@@ -1,26 +1,22 @@
 # Encapsula — Package Scope and Architecture
 
-This document defines the scope, purpose, naming conventions, feature plan, and architecture for the Encapsula package. It serves as the reference for all subsequent implementation phases.
+This document defines the scope, purpose, and architecture for the Encapsula package.
 
 ---
 
 ## 1. Package Purpose
 
-Encapsula is a data encapsulation package for Laravel. It provides a clean, type-safe way to define structured data objects (DTOs) that can validate, cast, and transform data flowing through a Laravel application.
-
-Modern Laravel applications pass data between layers — controllers, services, jobs, events, API responses — often using raw arrays or loosely typed structures. Encapsula replaces those patterns with explicit, self-documenting data objects that enforce structure at runtime.
+Encapsula is a Laravel API response encryption package with frontend decoding support. It provides middleware that encrypts JSON API responses using AES-256-GCM authenticated encryption, and ships TypeScript helpers for frontend decryption via the Web Crypto API.
 
 ## 2. Target Users
 
-- Laravel developers building medium-to-large applications who need predictable data structures between layers.
-- Teams that want lightweight DTOs without adopting a full data-mapping framework.
-- Package authors who need a simple foundation for structured input/output in their own packages.
+- Laravel developers building APIs that need an additional layer of response payload obfuscation.
+- Teams that want to prevent casual inspection of API data in browser developer tools.
+- Applications serving sensitive data where defense-in-depth beyond HTTPS is desired.
 
 ## 3. Package Type
 
-**Laravel-focused Composer package.**
-
-Encapsula depends on `illuminate/support` and integrates via a Laravel service provider. It can technically be used outside Laravel, but first-class support targets Laravel 10, 11, and 12.
+**Laravel-focused Composer package** with companion frontend TypeScript helpers.
 
 ## 4. Package Identity
 
@@ -29,223 +25,122 @@ Encapsula depends on `illuminate/support` and integrates via a Laravel service p
 | Composer name | `zobayer/encapsula` |
 | PHP namespace | `Zobayer\Encapsula` |
 | Service provider | `Zobayer\Encapsula\EncapsulaServiceProvider` |
-| Facade | `Zobayer\Encapsula\Facades\Encapsula` |
 | Config file | `config/encapsula.php` |
+| Middleware alias | `encapsula.encrypt` |
 | License | MIT |
 | Minimum PHP | 8.2 |
 | Minimum Laravel | 10.0 |
 
 ## 5. Core Features
 
-These are the capabilities planned for the initial release:
-
-1. **Base data object class** — An abstract `DataObject` class that developers extend to define typed properties representing a data structure.
-2. **Factory construction** — Static `from()` method accepting arrays, request objects, Eloquent models, or JSON strings and returning a hydrated data object instance.
-3. **Property casting** — Automatic casting of input values to declared property types (scalars, enums, Carbon dates, nested data objects).
-4. **Validation integration** — Optional validation rules defined on the data object, executed during construction, throwing a clear exception on failure.
-5. **Transformation / serialization** — A `toArray()` method that converts the data object back to a plain array, respecting visibility and custom transformers.
-6. **Immutability support** — Readonly properties by default; a `clone()` helper to derive modified copies.
-7. **Collection support** — A typed `DataCollection` wrapper for lists of data objects with map/filter/toArray helpers.
-8. **Configuration** — A publishable config file controlling default behaviors (strict mode, date format, etc.).
+1. **Response encryption middleware** — Encrypts JSON API responses using AES-256-GCM.
+2. **Encrypted envelope** — Wraps responses in a consistent envelope with payload, IV, tag, and algorithm fields.
+3. **Route exclusions** — Skip encryption for specific routes by name pattern.
+4. **Config-driven** — Enable/disable, key management, algorithm, and envelope field names via config.
+5. **Safe skipping** — Automatically skips redirects, streamed responses, file downloads, empty responses, and non-JSON content.
+6. **Frontend decryption** — TypeScript helpers for Web Crypto API decryption, Axios interceptor, and Fetch wrapper.
 
 ## 6. Non-Goals
 
-The following are explicitly out of scope:
+- **Not a replacement for HTTPS.** TLS is still required.
+- **Not access control.** Use Laravel authorization (policies, gates, scopes) to restrict data.
+- **Not end-to-end encryption.** The server encrypts; the frontend decrypts. The server always has access to plaintext.
+- **Not a key management system.** Key storage and rotation is the application's responsibility.
 
-- **ORM / persistence** — Encapsula does not replace Eloquent. It does not manage database tables, migrations, or query building.
-- **Full validation framework** — Validation is a convenience layer on top of Laravel's validator; Encapsula does not replace `illuminate/validation`.
-- **API resource replacement** — Encapsula data objects can feed API resources but do not replace `JsonResource`.
-- **Code generation / scaffolding CLI** — No Artisan commands for generating data objects in the initial release.
-- **Event sourcing / CQRS** — Encapsula is not an event-sourcing framework.
-- **Generic PHP DTO library** — While the core class can work without Laravel, non-Laravel usage is not a supported use case.
-
-## 7. Public API Style
-
-The public API favors **static factory methods** and **fluent, minimal interfaces**.
-
-### Creating a data object
-
-```php
-use Zobayer\Encapsula\DataObject;
-
-class CreateUserData extends DataObject
-{
-    public function __construct(
-        public readonly string $name,
-        public readonly string $email,
-        public readonly ?string $phone = null,
-    ) {}
-}
-
-// From an array
-$data = CreateUserData::from([
-    'name' => 'Ahmed',
-    'email' => 'ahmed@example.com',
-]);
-
-// From a Laravel request
-$data = CreateUserData::from($request);
-
-// Back to array
-$data->toArray(); // ['name' => 'Ahmed', 'email' => 'ahmed@example.com', 'phone' => null]
-```
-
-### Validation
-
-```php
-class CreateUserData extends DataObject
-{
-    public function __construct(
-        public readonly string $name,
-        public readonly string $email,
-    ) {}
-
-    public static function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email'],
-        ];
-    }
-}
-
-// Throws Zobayer\Encapsula\Exceptions\ValidationException on invalid input
-$data = CreateUserData::from($request);
-```
-
-### Collections
-
-```php
-use Zobayer\Encapsula\DataCollection;
-
-$users = CreateUserData::collection([
-    ['name' => 'Ahmed', 'email' => 'a@example.com'],
-    ['name' => 'Sara', 'email' => 's@example.com'],
-]);
-
-$users->toArray(); // array of plain arrays
-```
-
-## 8. Architecture Overview
+## 7. Architecture Overview
 
 ### Directory structure
 
 ```
 encapsula/
 ├── config/
-│   └── encapsula.php            # Publishable configuration
+│   └── encapsula.php
 ├── src/
-│   ├── Concerns/                # Reusable traits
-│   │   ├── HasCasting.php       # Property type casting logic
-│   │   ├── HasFactory.php       # Static from() construction logic
-│   │   ├── HasTransformation.php # toArray() and serialization
-│   │   └── HasValidation.php    # Optional validation integration
-│   ├── Contracts/               # Interfaces
-│   │   └── Castable.php         # Contract for custom cast classes
+│   ├── Contracts/
+│   │   └── Encryptor.php
 │   ├── Exceptions/
-│   │   └── ValidationException.php
-│   ├── Facades/
-│   │   └── Encapsula.php        # Optional facade
-│   ├── DataCollection.php       # Typed collection of data objects
-│   ├── DataObject.php           # Abstract base class
+│   │   └── EncryptionException.php
+│   ├── Http/
+│   │   └── Middleware/
+│   │       └── EncryptApiResponse.php
+│   ├── Services/
+│   │   └── ResponseEncryptor.php
 │   └── EncapsulaServiceProvider.php
+├── frontend/
+│   └── src/
+│       ├── decrypt.ts
+│       ├── axios-interceptor.ts
+│       └── fetch-client.ts
 ├── tests/
 │   ├── Unit/
-│   │   ├── DataObjectTest.php
-│   │   ├── DataCollectionTest.php
-│   │   ├── CastingTest.php
-│   │   └── ValidationTest.php
+│   │   └── ResponseEncryptorTest.php
 │   ├── Feature/
-│   │   ├── ServiceProviderTest.php
-│   │   └── ConfigTest.php
-│   └── TestCase.php             # Base test case with Orchestra Testbench
+│   │   └── EncryptApiResponseMiddlewareTest.php
+│   └── TestCase.php
 ├── composer.json
 ├── phpunit.xml
+├── phpstan.neon
+├── pint.json
 ├── LICENSE
 ├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
 └── AGENTS.md
 ```
-
-### Key components
-
-| Component | Responsibility |
-|---|---|
-| `DataObject` | Abstract base class. Holds typed constructor properties. Provides `from()`, `toArray()`, `clone()`, `collection()`. Delegates casting, validation, and transformation to traits. |
-| `HasFactory` | Trait on `DataObject`. Implements `from()` to accept arrays, Request objects, Model instances, and JSON strings. Normalizes input to an associative array before construction. |
-| `HasCasting` | Trait on `DataObject`. Reads declared property types via reflection and casts input values (e.g., string→int, string→Carbon, array→nested DataObject). |
-| `HasValidation` | Trait on `DataObject`. If a static `rules()` method is defined, runs input through Laravel's validator before construction. Throws `ValidationException` on failure. |
-| `HasTransformation` | Trait on `DataObject`. Implements `toArray()` by iterating public properties, recursively converting nested data objects and collections. |
-| `DataCollection` | Generic typed collection wrapping an array of `DataObject` instances. Provides `toArray()`, `map()`, `filter()`, `count()`, and is iterable/countable. |
-| `Castable` | Interface for custom cast classes that convert raw input to a target type. |
-| `EncapsulaServiceProvider` | Registers the package config. Publishes `config/encapsula.php`. No additional bindings unless the facade is used. |
-| `config/encapsula.php` | Controls defaults: strict mode (throw on unknown keys), default date format, whether validation is enabled by default. |
 
 ### Data flow
 
 ```
-Input (array / Request / Model / JSON)
+Client Request
   │
   ▼
-DataObject::from()          ← HasFactory trait
-  │
-  ├─ normalize to array
-  ├─ validate (if rules exist) ← HasValidation trait
-  ├─ cast values to types       ← HasCasting trait
+Laravel Router → Controller → JSON Response
   │
   ▼
-new DataObject(...)         ← Constructor with typed readonly properties
+EncryptApiResponse Middleware
+  │
+  ├─ Is JSON? Is not excluded? Is enabled?
+  │   No → Pass through unchanged
+  │   Yes ↓
+  ├─ ResponseEncryptor::encrypt(payload)
+  │   ├─ Generate random IV
+  │   ├─ AES-256-GCM encrypt with key + IV
+  │   └─ Return {payload, iv, tag}
   │
   ▼
-$dataObject->toArray()      ← HasTransformation trait
+Encrypted Envelope Response → Client
   │
   ▼
-Plain array output
+Frontend decrypt(envelope, key) → Original JSON
 ```
 
-## 9. Configuration
+## 8. Security Model
 
-The publishable config file (`config/encapsula.php`) will contain:
+- **Algorithm:** AES-256-GCM (authenticated encryption with associated data).
+- **IV:** Random 12-byte nonce generated per response.
+- **Tag:** 128-bit authentication tag to detect tampering.
+- **Key:** 256-bit (32 bytes), base64-encoded, provided via environment variable.
+- **Limitation:** The frontend must have the decryption key, so an authenticated user's browser can always access the plaintext. This is obfuscation, not true secret-keeping from the end user.
 
-```php
-return [
-    // When true, unknown keys in input arrays throw an exception.
-    'strict' => false,
+## 9. Migration from DTO Direction
 
-    // Default date format used when casting date strings.
-    'date_format' => 'Y-m-d H:i:s',
+The package was initially developed as a Laravel DTO/data-object package. That implementation still exists in `src/` (DataObject, DataCollection, Concerns traits) and will be removed in a follow-up PR. The encryption direction is the correct product scope going forward.
 
-    // When true, validation rules are applied automatically on from().
-    'validate_by_default' => true,
-];
-```
+### Removal plan for DTO code
 
-## 10. Development Phases
+The following files are from the previous DTO direction and will be removed in the next PR:
 
-| Phase | Issue | Scope |
-|---|---|---|
-| 1 | #1 | Define package scope and architecture (this document) |
-| 2 | #2 | Initialize Composer package structure, PSR-4 autoloading, base directories |
-| 3 | #3 | Add `EncapsulaServiceProvider`, config publishing, auto-discovery |
-| 4 | #4 | Implement `DataObject`, traits, `DataCollection`, casting, validation |
-| 5 | #5 | Add PHPUnit tests, PHPStan, Laravel Pint |
-| 6 | #6 | Write README, usage examples, troubleshooting docs |
-| 7 | #7 | Add GitHub Actions CI workflow |
-| 8 | #8 | Prepare first release, changelog, Packagist submission |
+- `src/DataObject.php`
+- `src/DataCollection.php`
+- `src/Concerns/HasCasting.php`
+- `src/Concerns/HasFactory.php`
+- `src/Concerns/HasTransformation.php`
+- `src/Concerns/HasValidation.php`
+- `src/Contracts/Castable.php`
+- `src/Exceptions/ValidationException.php`
+- `tests/Unit/DataObjectTest.php`
+- `tests/Unit/DataCollectionTest.php`
+- `tests/Unit/CastingTest.php`
+- `tests/Unit/ValidationTest.php`
 
-## 11. Dependencies
-
-### Runtime
-
-| Package | Purpose |
-|---|---|
-| `illuminate/support` ^10.0\|^11.0\|^12.0 | Laravel collections, config, service provider base |
-| `illuminate/validation` ^10.0\|^11.0\|^12.0 | Optional validation integration |
-
-### Development
-
-| Package | Purpose |
-|---|---|
-| `phpunit/phpunit` ^10.5\|^11.0 | Test framework |
-| `orchestra/testbench` ^8.0\|^9.0\|^10.0 | Laravel package testing |
-| `larastan/larastan` ^2.0\|^3.0 | Static analysis |
-| `laravel/pint` ^1.0 | Code style |
+The `illuminate/validation` dependency will also be removed once DTO code is deleted.

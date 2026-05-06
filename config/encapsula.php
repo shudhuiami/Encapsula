@@ -6,38 +6,73 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Strict Mode
+    | Enable Response Encryption
     |--------------------------------------------------------------------------
     |
-    | When enabled, unknown keys in input arrays will cause an exception
-    | to be thrown during DataObject construction. Disable this to silently
-    | ignore extra keys.
+    | Toggle API response encryption on or off globally. When disabled,
+    | the middleware passes responses through unchanged.
     |
     */
 
-    'strict' => false,
+    'enabled' => (bool) env('ENCAPSULA_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
-    | Date Format
+    | Encryption Key
     |--------------------------------------------------------------------------
     |
-    | The default format used when casting date strings to Carbon instances.
+    | A base64-encoded 32-byte (256-bit) key used for AES-256-GCM encryption.
+    | Generate one with: php -r "echo base64_encode(random_bytes(32));"
+    |
+    | WARNING: Do not commit this value. Use an environment variable.
     |
     */
 
-    'date_format' => 'Y-m-d H:i:s',
+    'key' => env('ENCAPSULA_KEY', ''),
 
     /*
     |--------------------------------------------------------------------------
-    | Validate By Default
+    | Cipher Algorithm
     |--------------------------------------------------------------------------
     |
-    | When enabled, validation rules defined on a DataObject are applied
-    | automatically during construction via the from() factory method.
+    | The OpenSSL cipher algorithm to use. AES-256-GCM provides authenticated
+    | encryption and is strongly recommended.
     |
     */
 
-    'validate_by_default' => true,
+    'algorithm' => 'aes-256-gcm',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Excluded Routes
+    |--------------------------------------------------------------------------
+    |
+    | Route name patterns that should skip encryption. Supports fnmatch
+    | wildcards (e.g. 'auth.*', 'health', 'debug.*').
+    |
+    */
+
+    'exclude' => [
+        // 'login',
+        // 'health',
+        // 'debug.*',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Response Envelope
+    |--------------------------------------------------------------------------
+    |
+    | Customize the field names in the encrypted response envelope.
+    |
+    */
+
+    'envelope' => [
+        'encrypted_field' => 'encrypted',
+        'payload_field' => 'payload',
+        'iv_field' => 'iv',
+        'tag_field' => 'tag',
+        'algorithm_field' => 'alg',
+    ],
 
 ];
