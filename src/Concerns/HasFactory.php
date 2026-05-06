@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Zobayer\Encapsula\Concerns;
 
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 /**
@@ -20,23 +20,17 @@ trait HasFactory
      * Create a new instance from various input types.
      *
      * @param  array<string, mixed>|Request|Model|string  $source
-     * @return static
      *
      * @throws InvalidArgumentException When the source type is unsupported or JSON is invalid.
      */
     public static function from(array|Request|Model|string $source): static
     {
         $data = static::normalizeSource($source);
+        $data = static::validate($data);
+        $data = static::castProperties($data);
 
-        if (method_exists(static::class, 'validate')) {
-            $data = static::validate($data);
-        }
-
-        if (method_exists(static::class, 'castProperties')) {
-            $data = static::castProperties($data);
-        }
-
-        return new static(...$data);
+        /** @var static */
+        return new static(...$data); // @phpstan-ignore new.static
     }
 
     /**
@@ -61,20 +55,14 @@ trait HasFactory
             return $source->toArray();
         }
 
-        if (is_string($source)) {
-            $decoded = json_decode($source, true);
+        $decoded = json_decode($source, true);
 
-            if (! is_array($decoded)) {
-                throw new InvalidArgumentException(
-                    'Invalid JSON string provided to ' . static::class . '::from().'
-                );
-            }
-
-            return $decoded;
+        if (! is_array($decoded)) {
+            throw new InvalidArgumentException(
+                'Invalid JSON string provided to '.static::class.'::from().'
+            );
         }
 
-        throw new InvalidArgumentException(
-            'Unsupported source type provided to ' . static::class . '::from().'
-        );
+        return $decoded;
     }
 }

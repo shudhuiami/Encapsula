@@ -15,7 +15,7 @@ class EncapsulaServiceProvider extends ServiceProvider
     {
         // Package config is merged instead of overwritten so host applications can override only the values they need.
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/encapsula.php',
+            __DIR__.'/../config/encapsula.php',
             'encapsula'
         );
     }
@@ -27,7 +27,7 @@ class EncapsulaServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/encapsula.php' => config_path('encapsula.php'),
+                __DIR__.'/../config/encapsula.php' => config_path('encapsula.php'),
             ], 'encapsula-config');
         }
     }

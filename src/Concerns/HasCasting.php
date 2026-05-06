@@ -42,13 +42,15 @@ trait HasCasting
         if (! empty($unknownKeys)) {
             if (config('encapsula.strict', false)) {
                 throw new \InvalidArgumentException(
-                    'Unknown keys [' . implode(', ', $unknownKeys) . '] provided to ' . static::class . '.'
+                    'Unknown keys ['.implode(', ', $unknownKeys).'] provided to '.static::class.'.'
                 );
             }
 
             // Strip unknown keys so named parameter spread does not fail.
             $data = array_intersect_key($data, array_flip($paramNames));
         }
+
+        $customCasts = method_exists(static::class, 'casts') ? static::casts() : [];
 
         foreach ($parameters as $parameter) {
             $name = $parameter->getName();
@@ -60,6 +62,13 @@ trait HasCasting
             $value = $data[$name];
 
             if ($value === null && $parameter->getType()?->allowsNull()) {
+                continue;
+            }
+
+            // Apply custom Castable if defined for this property.
+            if (isset($customCasts[$name]) && is_subclass_of($customCasts[$name], Castable::class)) {
+                $data[$name] = (new $customCasts[$name])->cast($value);
+
                 continue;
             }
 
@@ -104,7 +113,7 @@ trait HasCasting
 
         // Custom Castable
         if (is_subclass_of($typeName, Castable::class)) {
-            return (new $typeName())->cast($value);
+            return (new $typeName)->cast($value);
         }
 
         return $value;
@@ -115,8 +124,8 @@ trait HasCasting
         return match ($type) {
             'int' => (int) $value,
             'float' => (float) $value,
-            'string' => (string) $value,
             'bool' => (bool) $value,
+            default => (string) $value,
         };
     }
 

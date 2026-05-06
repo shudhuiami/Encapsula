@@ -18,10 +18,10 @@ use Zobayer\Encapsula\Concerns\HasValidation;
  */
 abstract class DataObject
 {
-    use HasFactory;
     use HasCasting;
-    use HasValidation;
+    use HasFactory;
     use HasTransformation;
+    use HasValidation;
 
     /**
      * Create a typed collection of this data object from an array of items.
@@ -43,7 +43,6 @@ abstract class DataObject
      * Create a modified copy of this data object with the given overrides.
      *
      * @param  array<string, mixed>  $overrides
-     * @return static
      */
     public function clone(array $overrides = []): static
     {
