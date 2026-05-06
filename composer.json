@@ -38,6 +38,13 @@
             "Zobayer\\Encapsula\\Tests\\": "tests/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Zobayer\\Encapsula\\EncapsulaServiceProvider"
+            ]
+        }
+    },
     "config": {
         "sort-packages": true
     },
