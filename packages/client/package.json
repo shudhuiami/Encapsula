@@ -1,0 +1,55 @@
+{
+  "name": "@encapsula/client",
+  "version": "0.1.0",
+  "description": "Frontend decoder client for Encapsula API response encryption.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "encapsula",
+    "encryption",
+    "api",
+    "decryption",
+    "aes-gcm",
+    "laravel",
+    "frontend",
+    "axios",
+    "fetch"
+  ],
+  "author": "Ahmed Zobayer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shudhuiami/Encapsula",
+    "directory": "packages/client"
+  },
+  "devDependencies": {
+    "axios": "^1.7.0",
+    "typescript": "^5.5.0",
+    "vitest": "^3.2.1"
+  },
+  "peerDependencies": {
+    "axios": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "axios": {
+      "optional": true
+    }
+  }
+}
