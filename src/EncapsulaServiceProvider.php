@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Zobayer\Encapsula\Contracts\Encryptor;
 use Zobayer\Encapsula\Http\Middleware\EncryptApiResponse;
+use Zobayer\Encapsula\Services\EncryptionKeyResolver;
 use Zobayer\Encapsula\Services\ResponseEncryptor;
 
 class EncapsulaServiceProvider extends ServiceProvider
@@ -22,14 +23,19 @@ class EncapsulaServiceProvider extends ServiceProvider
             'encapsula'
         );
 
-        $this->app->singleton(Encryptor::class, function ($app) {
-            /** @var string $key */
-            $key = $app['config']->get('encapsula.key', '');
+        // Not a singleton because session-mode key is request/session dependent.
+        $this->app->bind(EncryptionKeyResolver::class, function ($app) {
+            return new EncryptionKeyResolver($app['config'], $app['session'] ?? null);
+        });
+
+        $this->app->bind(Encryptor::class, function ($app) {
+            /** @var EncryptionKeyResolver $resolver */
+            $resolver = $app->make(EncryptionKeyResolver::class);
 
             /** @var string $algorithm */
             $algorithm = $app['config']->get('encapsula.algorithm', 'aes-256-gcm');
 
-            return new ResponseEncryptor($key, $algorithm);
+            return new ResponseEncryptor($resolver->getBase64Key(), $algorithm);
         });
     }
 
@@ -42,6 +48,10 @@ class EncapsulaServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/encapsula.php' => config_path('encapsula.php'),
             ], 'encapsula-config');
+        }
+
+        if ((bool) config('encapsula.handshake.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/encapsula.php');
         }
 
         $this->registerMiddlewareAlias();

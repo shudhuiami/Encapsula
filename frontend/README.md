@@ -21,6 +21,13 @@ Use `packages/client/` when:
 - The project is built with Vue, React, Next.js, Nuxt, Vite, or Node tooling.
 - You want TypeScript support and package-managed updates.
 
+## Note about session handshake mode
+
+Encapsula also supports an optional **session key handshake** mode to avoid shipping a long-lived key in the frontend bundle.
+The standalone helpers in `frontend/` are intentionally minimal and currently document the static-key integration only.
+
+If you want session handshake mode, prefer the npm package (`encapsula-client`) which provides `createEncapsulaSessionKey()`.
+
 ## Files
 
 ```txt

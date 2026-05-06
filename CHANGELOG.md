@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Package direction changed** from DTO/data-object to API response encryption middleware with frontend decoding.
 - Updated `composer.json` description and keywords.
+- Allow Laravel 13 / Illuminate 13 in Composer constraints.
 - Updated `README.md` with encryption-focused documentation.
 - Updated `docs/architecture.md` with new scope and architecture.
 - Replaced `config/encapsula.php` with encryption-focused settings.
@@ -21,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Encryptor` contract (`src/Contracts/Encryptor.php`).
 - `ResponseEncryptor` service using AES-256-GCM (`src/Services/ResponseEncryptor.php`).
 - `EncryptApiResponse` middleware (`src/Http/Middleware/EncryptApiResponse.php`).
+- Optional session-key handshake mode (ECDH P-256 + HKDF-SHA256) to avoid shipping a long-lived frontend secret.
+- Frontend helper `createEncapsulaSessionKey()` for session handshake mode.
 - `EncryptionException` for encryption/decryption failures (`src/Exceptions/EncryptionException.php`).
 - Frontend TypeScript helpers: `decrypt.ts`, `axios-interceptor.ts`, `fetch-client.ts`.
 - Unit tests for `ResponseEncryptor`.

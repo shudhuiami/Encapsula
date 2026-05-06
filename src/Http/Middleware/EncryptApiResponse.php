@@ -43,7 +43,7 @@ class EncryptApiResponse
             return false;
         }
 
-        if (! config('encapsula.key')) {
+        if (! $this->hasEncryptionKey($request)) {
             return false;
         }
 
@@ -68,6 +68,26 @@ class EncryptApiResponse
         }
 
         return true;
+    }
+
+    protected function hasEncryptionKey(Request $request): bool
+    {
+        /** @var string $mode */
+        $mode = (string) config('encapsula.key_mode', 'static');
+
+        if ($mode === 'session') {
+            if (! method_exists($request, 'hasSession') || ! $request->hasSession()) {
+                return false;
+            }
+
+            /** @var array<string, mixed> $handshake */
+            $handshake = (array) config('encapsula.handshake', []);
+            $sessionKeyName = (string) ($handshake['session_key'] ?? 'encapsula.session_key');
+
+            return (string) $request->session()->get($sessionKeyName, '') !== '';
+        }
+
+        return (string) config('encapsula.key', '') !== '';
     }
 
     protected function isJsonResponse(Response|JsonResponse $response): bool

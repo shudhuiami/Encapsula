@@ -20,7 +20,7 @@ For simple projects without npm, standalone copy-paste helpers are kept in `fron
 ## Requirements
 
 - PHP 8.2+
-- Laravel 10, 11, or 12
+- Laravel 10, 11, 12, or 13
 - OpenSSL extension with AES-256-GCM support
 - Node.js/npm only if you want to use the optional frontend client package
 
@@ -60,6 +60,24 @@ Generate a key:
 ```bash
 php -r "echo base64_encode(random_bytes(32));"
 ```
+
+### Optional: Session Key Handshake (no static frontend secret)
+
+If you don't want to ship a long-lived `ENCAPSULA_KEY` in your frontend bundle, you can enable **session mode**.
+In this mode, the frontend establishes a **per-session** AES key using ECDH (P-256) + HKDF-SHA256, and the backend stores it in the server session.
+
+Backend `.env`:
+
+```env
+ENCAPSULA_KEY_MODE=session
+ENCAPSULA_HANDSHAKE_ENABLED=true
+```
+
+Important:
+
+- The handshake route must run under **session middleware** (default is `web`).
+- You should add your own auth middleware to the handshake route via `config/encapsula.php` if needed.
+- After the handshake succeeds, subsequent responses encrypted by `encapsula.encrypt` will use the **session key**.
 
 ## Frontend Installation
 
@@ -108,12 +126,14 @@ When middleware is active, JSON responses are wrapped in an encrypted envelope:
 
 ```ts
 import { decodeEncapsulaResponse } from 'encapsula-client';
+import { createEncapsulaSessionKey } from 'encapsula-client';
 
+const key = await createEncapsulaSessionKey({ handshakeUrl: '/encapsula/handshake' });
 const response = await fetch('/api/users');
 const body = await response.json();
 
 const users = await decodeEncapsulaResponse(body, {
-  key: import.meta.env.VITE_ENCAPSULA_KEY,
+  key,
 });
 ```
 
@@ -186,7 +206,12 @@ After publishing (`php artisan vendor:publish --tag=encapsula-config`), edit `co
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `true` | Enable or disable response encryption globally. |
-| `key` | `string` | `env('ENCAPSULA_KEY')` | Base64-encoded 32-byte encryption key. |
+| `key_mode` | `string` | `'static'` | Key source: `'static'` (single key) or `'session'` (derived per session). |
+| `key` | `string` | `env('ENCAPSULA_KEY')` | Base64-encoded 32-byte encryption key (used when `key_mode=static`). |
+| `handshake.enabled` | `bool` | `false` | Enable the session handshake endpoint (required when `key_mode=session`). |
+| `handshake.path` | `string` | `'/encapsula/handshake'` | Path for the handshake route. |
+| `handshake.middleware` | `array` | `['web']` | Middleware applied to handshake route (must include sessions). |
+| `handshake.session_key` | `string` | `'encapsula.session_key'` | Session key name used to store derived base64 AES key. |
 | `algorithm` | `string` | `'aes-256-gcm'` | OpenSSL cipher algorithm. |
 | `exclude` | `array` | `[]` | Route name patterns to skip encryption (e.g. `'login'`, `'health.*'`). |
 | `envelope.encrypted_field` | `string` | `'encrypted'` | Name of the boolean flag field in the envelope. |
@@ -208,7 +233,7 @@ The middleware:
 
 - **Not a replacement for HTTPS.** Always use TLS for transport-layer security.
 - **Browser-side decryption** means authenticated users can access decrypted data. This prevents casual inspection of network responses but does not hide data from the authenticated user.
-- **Frontend keys are visible** in built frontend apps when they are shipped to the browser.
+- **Frontend keys are visible** in built frontend apps when they are shipped to the browser. If you want to avoid shipping a long-lived key, use the optional **session handshake mode**.
 - **Key management** is the application's responsibility. Rotate keys carefully and consider a key rotation strategy for production.
 - **This is obfuscation, not access control.** Use proper authorization (policies, gates, scopes) to restrict which data is returned by your API.
 

@@ -22,6 +22,29 @@ const users = await decodeEncapsulaResponse(body, {
 });
 ```
 
+## Optional: Session Key Handshake (recommended)
+
+If you don't want to ship a long-lived Encapsula key in your frontend bundle, use the session handshake.
+
+Backend requirements:
+
+- `ENCAPSULA_KEY_MODE=session`
+- `ENCAPSULA_HANDSHAKE_ENABLED=true`
+- The handshake endpoint must run under session middleware (default is `web`).
+
+Frontend:
+
+```ts
+import { createEncapsulaSessionKey, decodeEncapsulaResponse } from "encapsula-client";
+
+const key = await createEncapsulaSessionKey({ handshakeUrl: "/encapsula/handshake" });
+
+const response = await fetch("/api/users");
+const body = await response.json();
+
+const users = await decodeEncapsulaResponse(body, { key });
+```
+
 ## API
 
 ### `decodeEncapsulaResponse<T>(data, options): Promise<T>`
@@ -70,6 +93,18 @@ const apiFetch = createEncapsulaFetch({
 });
 
 const users = await apiFetch('/api/users');
+```
+
+### `createEncapsulaSessionKey(options): Promise<string>`
+
+Establish a per-session AES key with the backend using ECDH (P-256) + HKDF-SHA256.
+
+```ts
+import { createEncapsulaSessionKey } from "encapsula-client";
+
+const key = await createEncapsulaSessionKey({
+  handshakeUrl: "/encapsula/handshake",
+});
 ```
 
 ## Vanilla JavaScript
@@ -138,7 +173,7 @@ npm publish
 
 - **HTTPS is still required.** This package does not replace TLS.
 - **Not a replacement for authentication or authorization.** Use proper auth to control API access.
-- **Frontend keys are visible** in built frontend apps. Do not make misleading security claims.
+- **Frontend keys are visible** in built frontend apps. If you want to avoid shipping a long-lived key, use the optional session handshake mode.
 - **Authenticated users can access decrypted data** in their browser. This prevents casual network tab inspection, not determined access.
 - **Do not hardcode production keys** in committed source. Use environment variables.
 

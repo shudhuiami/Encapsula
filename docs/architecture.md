@@ -39,6 +39,7 @@ Encapsula is a Laravel API response encryption package with frontend decoding su
 4. **Config-driven** — Enable/disable, key management, algorithm, and envelope field names via config.
 5. **Safe skipping** — Automatically skips redirects, streamed responses, file downloads, empty responses, and non-JSON content.
 6. **Frontend decryption** — TypeScript helpers for Web Crypto API decryption, Axios interceptor, and Fetch wrapper.
+7. **Optional session-key mode** — Derive a per-session AES key via handshake to avoid shipping a long-lived frontend secret.
 
 ## 6. Non-Goals
 
@@ -55,15 +56,20 @@ Encapsula is a Laravel API response encryption package with frontend decoding su
 encapsula/
 ├── config/
 │   └── encapsula.php
+├── routes/
+│   └── encapsula.php
 ├── src/
 │   ├── Contracts/
 │   │   └── Encryptor.php
 │   ├── Exceptions/
 │   │   └── EncryptionException.php
 │   ├── Http/
+│   │   ├── Controllers/
+│   │   │   └── HandshakeController.php
 │   │   └── Middleware/
 │   │       └── EncryptApiResponse.php
 │   ├── Services/
+│   │   ├── EncryptionKeyResolver.php
 │   │   └── ResponseEncryptor.php
 │   └── EncapsulaServiceProvider.php
 ├── frontend/
@@ -71,6 +77,10 @@ encapsula/
 │       ├── decrypt.ts
 │       ├── axios-interceptor.ts
 │       └── fetch-client.ts
+├── packages/
+│   └── client/
+│       └── src/
+│           └── session.ts
 ├── tests/
 │   ├── Unit/
 │   │   └── ResponseEncryptorTest.php
@@ -119,7 +129,8 @@ Frontend decrypt(envelope, key) → Original JSON
 - **Algorithm:** AES-256-GCM (authenticated encryption with associated data).
 - **IV:** Random 12-byte nonce generated per response.
 - **Tag:** 128-bit authentication tag to detect tampering.
-- **Key:** 256-bit (32 bytes), base64-encoded, provided via environment variable.
+- **Key (static mode):** 256-bit (32 bytes), base64-encoded, provided via environment variable.
+- **Key (session mode):** 256-bit (32 bytes), derived per session via ECDH (P-256) + HKDF-SHA256 and stored server-side in the session.
 - **Limitation:** The frontend must have the decryption key, so an authenticated user's browser can always access the plaintext. This is obfuscation, not true secret-keeping from the end user.
 
 ## 9. Migration from DTO Direction
