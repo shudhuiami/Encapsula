@@ -13,7 +13,7 @@ Encapsula has two package layers in the same repository:
 | Package | Purpose | Path |
 |---|---|---|
 | `zobayer/encapsula` | Laravel backend middleware for protected API responses | repository root |
-| `@encapsula/client` | JavaScript/TypeScript frontend decoder for Vue, React, Next.js, Nuxt, Vite, Axios, Fetch, and Node clients | `packages/client` |
+| `encapsula-client` | JavaScript/TypeScript frontend decoder for Vue, React, Next.js, Nuxt, Vite, Axios, Fetch, and Node clients | `packages/client` |
 
 For simple projects without npm, standalone copy-paste helpers are kept in `frontend/`.
 
@@ -66,7 +66,7 @@ php -r "echo base64_encode(random_bytes(32));"
 For npm-based projects, install the client package:
 
 ```bash
-npm install @encapsula/client
+npm install encapsula-client
 ```
 
 Use this package in Vue, React, Next.js, Nuxt, Vite, Axios, Fetch, or Node-based frontend projects.
@@ -107,7 +107,7 @@ When middleware is active, JSON responses are wrapped in an encrypted envelope:
 ### 3. Decode in Frontend with the npm Package
 
 ```ts
-import { decodeEncapsulaResponse } from '@encapsula/client';
+import { decodeEncapsulaResponse } from 'encapsula-client';
 
 const response = await fetch('/api/users');
 const body = await response.json();
@@ -121,7 +121,7 @@ const users = await decodeEncapsulaResponse(body, {
 
 ```ts
 import axios from 'axios';
-import { attachEncapsulaAxiosInterceptor } from '@encapsula/client';
+import { attachEncapsulaAxiosInterceptor } from 'encapsula-client';
 
 const api = axios.create({
   baseURL: '/api',
@@ -137,7 +137,7 @@ const { data: users } = await api.get('/users');
 ### 5. Fetch Wrapper Usage
 
 ```ts
-import { createEncapsulaFetch } from '@encapsula/client';
+import { createEncapsulaFetch } from 'encapsula-client';
 
 const apiFetch = createEncapsulaFetch({
   key: import.meta.env.VITE_ENCAPSULA_KEY,
@@ -149,7 +149,7 @@ const users = await apiFetch('/api/users');
 ### 6. Node Usage
 
 ```ts
-import { decodeEncapsulaResponse } from '@encapsula/client';
+import { decodeEncapsulaResponse } from 'encapsula-client';
 
 const response = await fetch('https://example.com/api/users');
 const body = await response.json();
@@ -250,20 +250,13 @@ npm run typecheck
 npm test
 npm run build
 npm login
-npm publish --access public
+npm publish
 ```
 
 After publishing, verify installation in a fresh project:
 
 ```bash
-npm install @encapsula/client
-```
-
-If the `@encapsula` npm scope is unavailable or not owned by you, choose another package name before publishing, for example:
-
-```txt
-@zobayer/encapsula-client
-encapsula-client
+npm install encapsula-client
 ```
 
 ## Development
