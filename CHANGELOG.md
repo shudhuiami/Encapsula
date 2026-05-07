@@ -28,10 +28,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend TypeScript helpers: `decrypt.ts`, `axios-interceptor.ts`, `fetch-client.ts`.
 - Unit tests for `ResponseEncryptor`.
 - Feature tests for `EncryptApiResponse` middleware.
+- `encapsula:setup` command to scaffold Encapsula environment variables.
 
 ### Deprecated
 
 - DTO/DataObject classes (`DataObject`, `DataCollection`, Concerns traits) are deprecated and will be removed in the next release.
+
+### Fixed
+
+- Resolve session-mode encryption keys via the bound `session.store` (`$app->bound` / `$app->make`) instead of the `session` manager binding.
+- Allow disabling encryption globally via `ENCAPSULA_ENABLED`.
+- Allow overriding cipher algorithm via `ENCAPSULA_ALGORITHM`.
 
 ## [0.1.0] - 2026-05-06 [YANKED]
 

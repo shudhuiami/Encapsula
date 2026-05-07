@@ -30,6 +30,7 @@ Backend requirements:
 
 - `ENCAPSULA_KEY_MODE=session`
 - `ENCAPSULA_HANDSHAKE_ENABLED=true`
+- `ENCAPSULA_ENABLED=true`
 - The handshake endpoint must run under session middleware (default is `web`).
 
 Frontend:

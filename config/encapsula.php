@@ -88,7 +88,7 @@ return [
     |
     */
 
-    'algorithm' => 'aes-256-gcm',
+    'algorithm' => env('ENCAPSULA_ALGORITHM', 'aes-256-gcm'),
 
     /*
     |--------------------------------------------------------------------------

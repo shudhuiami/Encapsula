@@ -32,6 +32,30 @@ Install the Laravel package:
 composer require zobayer/encapsula
 ```
 
+### Quick Setup Command (recommended)
+
+You can scaffold the required `.env` values with:
+
+```bash
+php artisan encapsula:setup
+```
+
+Common usages:
+
+```bash
+# Static mode (default): prints env lines, including a freshly generated key
+php artisan encapsula:setup --mode=static
+
+# Session mode: prints env lines for handshake mode
+php artisan encapsula:setup --mode=session --handshake
+
+# Write into .env (won't overwrite existing keys)
+php artisan encapsula:setup --mode=static --write
+
+# Overwrite existing keys
+php artisan encapsula:setup --mode=session --handshake --write --force
+```
+
 The service provider is auto-discovered. To register manually, add to `config/app.php`:
 
 ```php
@@ -55,10 +79,24 @@ Add to your `.env` file:
 ENCAPSULA_KEY=your-base64-encoded-32-byte-key
 ```
 
+### Enable/Disable Encryption
+
+To disable encryption globally at runtime (feature flag):
+
+```env
+ENCAPSULA_ENABLED=false
+```
+
 Generate a key:
 
 ```bash
 php -r "echo base64_encode(random_bytes(32));"
+```
+
+### Optional: Override Algorithm
+
+```env
+ENCAPSULA_ALGORITHM=aes-256-gcm
 ```
 
 ### Optional: Session Key Handshake (no static frontend secret)
@@ -69,8 +107,10 @@ In this mode, the frontend establishes a **per-session** AES key using ECDH (P-2
 Backend `.env`:
 
 ```env
+ENCAPSULA_ENABLED=true
 ENCAPSULA_KEY_MODE=session
 ENCAPSULA_HANDSHAKE_ENABLED=true
+ENCAPSULA_KEY=
 ```
 
 Important:
@@ -212,7 +252,7 @@ After publishing (`php artisan vendor:publish --tag=encapsula-config`), edit `co
 | `handshake.path` | `string` | `'/encapsula/handshake'` | Path for the handshake route. |
 | `handshake.middleware` | `array` | `['web']` | Middleware applied to handshake route (must include sessions). |
 | `handshake.session_key` | `string` | `'encapsula.session_key'` | Session key name used to store derived base64 AES key. |
-| `algorithm` | `string` | `'aes-256-gcm'` | OpenSSL cipher algorithm. |
+| `algorithm` | `string` | `'aes-256-gcm'` | OpenSSL cipher algorithm (`ENCAPSULA_ALGORITHM`). |
 | `exclude` | `array` | `[]` | Route name patterns to skip encryption (e.g. `'login'`, `'health.*'`). |
 | `envelope.encrypted_field` | `string` | `'encrypted'` | Name of the boolean flag field in the envelope. |
 | `envelope.payload_field` | `string` | `'payload'` | Name of the ciphertext field. |

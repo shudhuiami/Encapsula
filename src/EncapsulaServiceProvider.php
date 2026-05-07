@@ -7,6 +7,7 @@ namespace Zobayer\Encapsula;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Zobayer\Encapsula\Contracts\Encryptor;
+use Zobayer\Encapsula\Console\EncapsulaSetupCommand;
 use Zobayer\Encapsula\Http\Middleware\EncryptApiResponse;
 use Zobayer\Encapsula\Services\EncryptionKeyResolver;
 use Zobayer\Encapsula\Services\ResponseEncryptor;
@@ -25,7 +26,10 @@ class EncapsulaServiceProvider extends ServiceProvider
 
         // Not a singleton because session-mode key is request/session dependent.
         $this->app->bind(EncryptionKeyResolver::class, function ($app) {
-            return new EncryptionKeyResolver($app['config'], $app['session'] ?? null);
+            return new EncryptionKeyResolver(
+                $app['config'],
+                $app->bound('session.store') ? $app->make('session.store') : null,
+            );
         });
 
         $this->app->bind(Encryptor::class, function ($app) {
@@ -48,9 +52,13 @@ class EncapsulaServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/encapsula.php' => config_path('encapsula.php'),
             ], 'encapsula-config');
+
+            $this->commands([
+                EncapsulaSetupCommand::class,
+            ]);
         }
 
-        if ((bool) config('encapsula.handshake.enabled', false)) {
+        if ((bool) config('encapsula.enabled', true) && (bool) config('encapsula.handshake.enabled', false)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/encapsula.php');
         }
 
